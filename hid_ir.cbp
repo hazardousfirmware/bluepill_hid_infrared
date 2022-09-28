@@ -51,15 +51,9 @@
 			<Add directory="../arm_common/libopencm3/lib" />
 		</Linker>
 		<ExtraCommands>
-			<Add after="arm-none-eabi-objcopy -O binary ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME} ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME}.bin" />
-			<Add after="arm-none-eabi-objcopy -O ihex ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME} ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME}.hex" />
+			<Add after="#arm-none-eabi-objcopy -O binary ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME} ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME}.bin" />
+			<Add after="#arm-none-eabi-objcopy -O ihex ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME} ${TARGET_OUTPUT_DIR}${TARGET_OUTPUT_BASENAME}.hex" />
 		</ExtraCommands>
-		<Unit filename="actions.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="actions.h">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
 		<Unit filename="hid_functions.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -69,6 +63,10 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="mouse_actions.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mouse_actions.h" />
 		<Unit filename="nec_infrared.c">
 			<Option compilerVar="CC" />
 		</Unit>

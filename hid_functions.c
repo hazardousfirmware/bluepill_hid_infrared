@@ -3,11 +3,11 @@
 
 // USB descriptor description https://beyondlogic.org/usbnutshell/usb5.shtml
 
+bool usb_ready = false;
+
 /* Buffer to be used for control requests. */
 uint8_t usbd_control_buffer[128];
 usbd_device *usbd_dev;
-
-bool usb_ready = false;
 
 // HID report descriptor tells the computer how to interpret the bytes written to the endpoint
 // https://eleccelerator.com/tutorial-about-usb-hid-report-descriptors/
@@ -33,24 +33,15 @@ static const uint8_t hid_report_descriptor[] = {
 	0x05, 0x01, /*     USAGE_PAGE (Generic Desktop)     */
 	0x09, 0x30, /*     USAGE (X)                        */ //SPEED in X/Y Direction (between -127 and +127)
 	0x09, 0x31, /*     USAGE (Y)                        */
-	0x09, 0x38, /*     USAGE (Wheel)                    */
+	//0x09, 0x38, /*     USAGE (Wheel)                    */
 	0x15, 0x81, /*     LOGICAL_MINIMUM (-127)           */
 	0x25, 0x7f, /*     LOGICAL_MAXIMUM (127)            */
 	0x75, 0x08, /*     REPORT_SIZE (8)                  */
-	0x95, 0x03, /*     REPORT_COUNT (3)                 */
+	//0x95, 0x03, /*     REPORT_COUNT (3)                 */
+	0x95, 0x02, /*     REPORT_COUNT (2)                 */
 	0x81, 0x06, /*     INPUT (Data,Var,Rel)             */
 	0xc0,       /*   END_COLLECTION                     */
-	0x09, 0x3c, /*   USAGE (Motion Wakeup)              */
-	0x05, 0xff, /*   USAGE_PAGE (Vendor Defined Page 1) */
-	0x09, 0x01, /*   USAGE (Vendor Usage 1)             */
-	0x15, 0x00, /*   LOGICAL_MINIMUM (0)                */
-	0x25, 0x01, /*   LOGICAL_MAXIMUM (1)                */
-	0x75, 0x01, /*   REPORT_SIZE (1)                    */
-	0x95, 0x02, /*   REPORT_COUNT (2)                   */
-	0xb1, 0x22, /*   FEATURE (Data,Var,Abs,NPrf)        */
-	0x75, 0x06, /*   REPORT_SIZE (6)                    */
-	0x95, 0x01, /*   REPORT_COUNT (1)                   */
-	0xb1, 0x01, /*   FEATURE (Cnst,Ary,Abs)             */
+	//0x09, 0x3c, /*   USAGE (Motion Wakeup)              */
 	0xc0        /* END_COLLECTION                       */
 };
 
@@ -59,13 +50,13 @@ static const uint8_t hid_report_descriptor[] = {
 const struct usb_device_descriptor dev_descr = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
-	.bcdUSB = 0x0200,
+	.bcdUSB = 0x0101,
 	.bDeviceClass = 0,
 	.bDeviceSubClass = 0,
 	.bDeviceProtocol = 0,
 	.bMaxPacketSize0 = 64,
-	.idVendor = 0x0483,
-	.idProduct = 0x5710,
+	.idVendor = 0x0000, //0x0483 = STM
+	.idProduct = 0x7777, //0x5710,
 	.bcdDevice = 0x0200,
 	.iManufacturer = 1,
 	.iProduct = 2,
@@ -98,7 +89,7 @@ static const struct {
 		.bNumDescriptors = 1,
 	},
 	.hid_report = {
-		.bReportDescriptorType = USB_DT_REPORT,
+		.bReportDescriptorType = USB_HID_DT_REPORT,
 		.wDescriptorLength = sizeof(hid_report_descriptor),
 	}
 };
@@ -135,7 +126,7 @@ const struct usb_config_descriptor config = {
 	.bNumInterfaces = 1,
 	.bConfigurationValue = 1,
 	.iConfiguration = 0,
-	.bmAttributes = 0x80, // Bus powered
+	.bmAttributes = 0xa0, // Bus powered, remote wakeup
 	.bMaxPower = 0x4b, // Max power consumption in 2mA units
 
 	.interface = ifaces,
@@ -193,5 +184,8 @@ inline void usbpoll(void)
 
 inline void usb_endpoint_write(uint8_t endpoint, const uint8_t *data, uint16_t data_length)
 {
-    usbd_ep_write_packet(usbd_dev, endpoint, data, data_length);
+    if (usb_ready)
+    {
+        usbd_ep_write_packet(usbd_dev, endpoint, data, data_length);
+    }
 }

@@ -6,27 +6,14 @@
 #include <libopencm3/stm32/exti.h>
 #include "hid_functions.h"
 #include "nec_infrared.h"
-#include "actions.h"
+#include "mouse_actions.h"
 
 uint32_t timing_delay = 0;
 uint32_t clock_counter = 0;
+uint32_t last_action = 0;
 
-void doNothing(void)
-{
-    static int led = 0;
-
-    if (led)
-    {
-        led = 0;
-        gpio_clear(GPIOC, GPIO13);
-    }
-    else
-    {
-        led = 1;
-        gpio_set(GPIOC, GPIO13);
-    }
-}
-
+void delay_ms(uint32_t milliseconds);
+void doNothing(void);
 
 const struct nec_infrared_command_t command_list[] = {
     {
@@ -45,10 +32,21 @@ const struct nec_infrared_command_t command_list[] = {
         .action = &action_cursor_left
     },
     {
-        .address = 0x03, //WINFAST REMOTE up  button
+        .address = 0x03, //WINFAST REMOTE right button
         .command = 0x04,
         .action = &action_cursor_right
     },
+    {
+        .address = 0x03,
+        .command = 0x13, // WINFAST REMOTE enter button
+        .action = &action_mouse_click_l
+    },
+    {
+        .address = 0x03,
+        .command = 0x4f, // WINFAST REMOTE MENU button
+        .action = &action_mouse_click_r
+    },
+    // Test functions, blink LED
     {
         .address = 0x03,
         .command = 0x00,
@@ -62,15 +60,16 @@ const struct nec_infrared_command_t command_list[] = {
 
 };
 
-void delay_ms(uint32_t milliseconds);
-
 // Hardware functions
 static inline void clock_setup(void)
 {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 	//rcc_clock_setup_in_hsi_out_48mhz();
+}
 
-	// enable the systick
+static inline void systick_setup(void)
+{
+    // enable the systick
     systick_clear();
     systick_set_frequency(1000000, rcc_ahb_frequency); // Interrupt every microsecond
 	systick_counter_enable();
@@ -113,7 +112,6 @@ static inline void infraredpin_setup(void)
     exti_select_source(EXTI12, GPIOB);
     exti_enable_request(EXTI12);
 
-    //nvic_set_priority(NVIC_EXTI0_IRQ, 0);
     nvic_enable_irq(NVIC_EXTI15_10_IRQ);
 }
 
@@ -129,7 +127,7 @@ int main(void)
 
 	necdecoder_register_button_actions(&command_list[0], sizeof(command_list) / sizeof(struct nec_infrared_command_t));
 
-	//while(1);
+	systick_setup();
 
     while (1)
     {
@@ -163,6 +161,15 @@ void sys_tick_handler()
     {
         timing_delay--;
     }
+
+    if (last_action > 0)
+    {
+        if (clock_counter - last_action >= BUTTON_RELEASE_TIMEOUT_MS * 1000)
+        {
+            action_button_release();
+            last_action = 0;
+        }
+    }
 }
 
 void usb_lp_can_rx0_isr(void)
@@ -186,4 +193,24 @@ void exti15_10_isr(void)
     necdecoder_decode_falling_edge(clock_counter);
 
     exti_reset_request(EXTI12);
+}
+
+void action_complete_callback(void)
+{
+    last_action = clock_counter;
+}
+
+void doNothing(void)
+{
+    static int led = 0x00;
+    led ^= 0x01;
+
+    if (led)
+    {
+        activityLED_on();
+    }
+    else
+    {
+        activityLED_off();
+    }
 }
