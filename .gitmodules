@@ -1,3 +1,6 @@
 [submodule "necinfrared"]
 	path = necinfrared
 	url = https://github.com/hazardousfirmware/necinfrared.git
+[submodule "libopencm3"]
+	path = libopencm3
+	url = https://github.com/libopencm3/libopencm3
