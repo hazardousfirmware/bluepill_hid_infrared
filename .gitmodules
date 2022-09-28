@@ -1,0 +1,3 @@
+[submodule "necinfrared"]
+	path = necinfrared
+	url = https://github.com/hazardousfirmware/necinfrared.git
