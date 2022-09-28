@@ -51,3 +51,11 @@ target_link_libraries(${GENERATED_BINARY}
     opencm3_stm32f1
     #necdecoder
 )
+
+add_custom_target(load 
+    COMMAND openocd -f "interface/stlink.cfg" -f "target/stm32f1x.cfg" -c "program ${GENERATED_BINARY} verify reset exit"
+)
+
+add_custom_target(size
+    COMMAND arm-none-eabi-size ${GENERATED_BINARY}
+)
