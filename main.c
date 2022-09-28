@@ -63,8 +63,7 @@ const struct nec_infrared_command_t command_list[] = {
 // Hardware functions
 static inline void clock_setup(void)
 {
-	rcc_clock_setup_in_hse_8mhz_out_72mhz();
-	//rcc_clock_setup_in_hsi_out_48mhz();
+    rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 }
 
 static inline void systick_setup(void)
@@ -213,4 +212,9 @@ void doNothing(void)
     {
         activityLED_off();
     }
+}
+
+void _exit(void)
+{
+    while(1);
 }
