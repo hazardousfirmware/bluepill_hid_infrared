@@ -1,5 +1,7 @@
 #include <stddef.h>
 
+// TODO: fix linking std lib. for now add some standard functions to prevent issues linking
+
 void *memcpy(void *restrict dest, const void *restrict src, size_t n)
 {
     const void* end = src + n;
@@ -20,4 +22,9 @@ size_t strlen(const char *s)
         end++;
     }
     return end - s;
+}
+
+void _exit(void)
+{
+    while(1);
 }

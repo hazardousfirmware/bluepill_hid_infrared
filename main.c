@@ -213,8 +213,3 @@ void doNothing(void)
         activityLED_off();
     }
 }
-
-void _exit(void)
-{
-    while(1);
-}
